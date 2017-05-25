@@ -89,7 +89,7 @@ namespace UnderTheWeather
 
                         if (currentLocation == null)
                         {
-                            tvCountry.Text = "Unable to determine your current city.";
+                            ClearValues("Unable to determine your current city.");
                         }
                         else
                         {
@@ -115,20 +115,17 @@ namespace UnderTheWeather
                 }
                 else
                 {
-                    tvCountry.Text = "Oops! No network access.";
-                    ClearValues();
+                    ClearValues("Oops! No network access.");
                 }
             }
             catch (Exception ex)
             {
-                tvCountry.Text = "Eish!...failed to detect location!";
-                ClearValues();
+                ClearValues("Eish!...failed to detect location!");
             }
         }
 
         public void OnProviderDisabled(string provider) {
-            ClearValues();
-            tvCountry.Text = "Please enable GPS setting.";
+            ClearValues("Please enable GPS setting.");
         }
 
         public void OnProviderEnabled(string provider) {
@@ -158,12 +155,13 @@ namespace UnderTheWeather
             return address;
         }
 
-        private void ClearValues() {
+        private void ClearValues(string message) {
             tvCity.Text = "";
             tvMinTemp.Text = "0 \u2103";
             tvMaxTemp.Text = "0 \u2103";
             tvHumidity.Text = "0 %";
             tvDescriptionText.Text = "-";
+            tvCountry.Text = message;
         }
     }
 }
