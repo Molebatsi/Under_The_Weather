@@ -8,7 +8,6 @@ using Android.Locations;
 using Android.Util;
 using System.Collections.Generic;
 using System.Linq;
-using Java.Lang;
 using Android.Net;
 
 namespace UnderTheWeather
@@ -28,13 +27,17 @@ namespace UnderTheWeather
         private string city = "";
         private string country = "";
         private string countryCode = "";
+        NetworkInfo networkInfo = null;
 
         double lat = 0;
         double lng = 0;
+
+        bool isOnline = false;
         protected override void OnCreate(Bundle bundle)
         {
             base.OnCreate(bundle);
             SetContentView(Resource.Layout.Main);
+            
 
             tvMinTemp = FindViewById<TextView>(Resource.Id.tvMinTemp);
             tvMaxTemp = FindViewById<TextView>(Resource.Id.tvMaxTemp);
@@ -44,7 +47,8 @@ namespace UnderTheWeather
             tvHumidity = FindViewById<TextView>(Resource.Id.tvHumidity);
             tvDescriptionText = FindViewById<TextView>(Resource.Id.tvDescriptionText);
 
-            InitializeLocationManager();           
+
+            InitializeLocationManager();
         }
 
         void InitializeLocationManager()
@@ -71,52 +75,59 @@ namespace UnderTheWeather
 
         public async void OnLocationChanged(Location location)
         {
-            ConnectivityManager connectivityManager = (ConnectivityManager)GetSystemService(ConnectivityService);
-            NetworkInfo networkInfo = connectivityManager.ActiveNetworkInfo;
-            bool isOnline = networkInfo.IsConnected;
-
-            if (isOnline)
+            try
             {
-                currentLocation = location;
+                ConnectivityManager connectivityManager = (ConnectivityManager)GetSystemService(ConnectivityService);
+                networkInfo = connectivityManager.ActiveNetworkInfo;
 
-                if (currentLocation == null)
+                if (networkInfo != null)
                 {
-                    tvCountry.Text = "Unable to determine your current city.";
+                    isOnline = networkInfo.IsConnected;
+                    if (isOnline)
+                    {
+                        currentLocation = location;
+
+                        if (currentLocation == null)
+                        {
+                            tvCountry.Text = "Unable to determine your current city.";
+                        }
+                        else
+                        {
+                            lat = currentLocation.Latitude;
+                            lng = currentLocation.Longitude;
+                            Address address = await ReverseGeocodeCurrentLocation();
+                            city = address.Locality;
+                            country = address.CountryName;
+                            countryCode = address.CountryCode;
+
+                            Weather weather = new Weather();
+                            var asyncWeather = await weather.GetTemp(city, countryCode);
+
+                            tvMinTemp.Text = asyncWeather.min + " \u2103";
+                            tvMaxTemp.Text = asyncWeather.max + " \u2103";
+                            tvTodayDate.Text = DateTime.Now.ToString("ddd, dd MMMM yyyy");
+                            tvHumidity.Text = asyncWeather.humidity + " %";
+                            tvDescriptionText.Text = asyncWeather.description;
+                            tvCity.Text = city;
+                            tvCountry.Text = country;
+                        }
+                    }
                 }
                 else
                 {
-                    lat = currentLocation.Latitude;
-                    lng = currentLocation.Longitude;
-                    Address address = await ReverseGeocodeCurrentLocation();
-                    city = address.Locality;
-                    country = address.CountryName;
-                    countryCode = address.CountryCode;
-
-                    Weather weather = new Weather();
-                    var asyncWeather = await weather.GetTemp(city, countryCode);
-
-                    tvMinTemp.Text = asyncWeather.min + " \u2103";
-                    tvMaxTemp.Text = asyncWeather.max + " \u2103";
-                    tvTodayDate.Text = DateTime.Now.ToString("ddd, dd MMMM yyyy");
-                    tvHumidity.Text = asyncWeather.humidity + " %";
-                    tvDescriptionText.Text = asyncWeather.description;
-                    tvCity.Text = city;
-                    tvCountry.Text = country;
+                    tvCountry.Text = "Oops! No network access.";
+                    ClearValues();
                 }
             }
-            else
+            catch (Exception ex)
             {
-                tvCountry.Text = "Oops! No internet connection.";
+                tvCountry.Text = "Eish!...failed to detect location!";
+                ClearValues();
             }
         }
 
         public void OnProviderDisabled(string provider) {
-            tvCity.Text = "";
-            tvCountry.Text = "";
-            tvMinTemp.Text = "0 \u2103";
-            tvMaxTemp.Text = "0 \u2103";
-            tvHumidity.Text = "0 %";
-            tvDescriptionText.Text = "-";
+            ClearValues();
             tvCountry.Text = "Please enable GPS setting.";
         }
 
@@ -145,6 +156,14 @@ namespace UnderTheWeather
 
             Address address = addressList.FirstOrDefault();
             return address;
+        }
+
+        private void ClearValues() {
+            tvCity.Text = "";
+            tvMinTemp.Text = "0 \u2103";
+            tvMaxTemp.Text = "0 \u2103";
+            tvHumidity.Text = "0 %";
+            tvDescriptionText.Text = "-";
         }
     }
 }

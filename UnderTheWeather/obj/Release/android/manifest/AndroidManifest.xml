@@ -4,6 +4,7 @@
   <uses-permission android:name="android.permission.INTERNET" />
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"></uses-permission>
   <application android:label="Under The Weather" android:name="android.app.Application" android:allowBackup="true" android:icon="@drawable/icon">
     <activity android:icon="@drawable/icon" android:theme="@android:style/Theme.DeviceDefault.NoActionBar" android:name="md585d57bf12d4910c5c593f08795cf21c6.MainActivity">
       <intent-filter>
