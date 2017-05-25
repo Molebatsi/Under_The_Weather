@@ -1,0 +1,4 @@
+UnderTheWeather.MainActivity, UnderTheWeather;md585d57bf12d4910c5c593f08795cf21c6.MainActivity
+UnderTheWeather.MainActivity, UnderTheWeather, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null;md585d57bf12d4910c5c593f08795cf21c6.MainActivity
+UnderTheWeather.MainActivity;md585d57bf12d4910c5c593f08795cf21c6.MainActivity
+undertheweather.MainActivity;md585d57bf12d4910c5c593f08795cf21c6.MainActivity

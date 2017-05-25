@@ -9,6 +9,7 @@ using Android.Util;
 using System.Collections.Generic;
 using System.Linq;
 using Java.Lang;
+using Android.Net;
 
 namespace UnderTheWeather
 {
@@ -70,31 +71,42 @@ namespace UnderTheWeather
 
         public async void OnLocationChanged(Location location)
         {
-            currentLocation = location;
+            ConnectivityManager connectivityManager = (ConnectivityManager)GetSystemService(ConnectivityService);
+            NetworkInfo networkInfo = connectivityManager.ActiveNetworkInfo;
+            bool isOnline = networkInfo.IsConnected;
 
-            if (currentLocation == null)
+            if (isOnline)
             {
-                tvCountry.Text = "Unable to determine your current city.";
+                currentLocation = location;
+
+                if (currentLocation == null)
+                {
+                    tvCountry.Text = "Unable to determine your current city.";
+                }
+                else
+                {
+                    lat = currentLocation.Latitude;
+                    lng = currentLocation.Longitude;
+                    Address address = await ReverseGeocodeCurrentLocation();
+                    city = address.Locality;
+                    country = address.CountryName;
+                    countryCode = address.CountryCode;
+
+                    Weather weather = new Weather();
+                    var asyncWeather = await weather.GetTemp(city, countryCode);
+
+                    tvMinTemp.Text = asyncWeather.min + " \u2103";
+                    tvMaxTemp.Text = asyncWeather.max + " \u2103";
+                    tvTodayDate.Text = DateTime.Now.ToString("ddd, dd MMMM yyyy");
+                    tvHumidity.Text = asyncWeather.humidity + " %";
+                    tvDescriptionText.Text = asyncWeather.description;
+                    tvCity.Text = city;
+                    tvCountry.Text = country;
+                }
             }
             else
             {
-                lat = currentLocation.Latitude;
-                lng = currentLocation.Longitude;
-                Address address = await ReverseGeocodeCurrentLocation();
-                city = address.Locality;
-                country = address.CountryName;
-                countryCode = address.CountryCode;
-
-                Weather weather = new Weather();
-                var asyncWeather = await weather.GetTemp(city, countryCode);
-
-                tvMinTemp.Text = asyncWeather.min + " \u2103";
-                tvMaxTemp.Text = asyncWeather.max + " \u2103";
-                tvTodayDate.Text = DateTime.Now.ToString("ddd, dd MMMM yyyy");
-                tvHumidity.Text = asyncWeather.humidity + " %";
-                tvDescriptionText.Text = asyncWeather.description;
-                tvCity.Text = city;
-                tvCountry.Text = country;
+                tvCountry.Text = "Oops! No internet connection.";
             }
         }
 
